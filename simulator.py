@@ -202,8 +202,9 @@ class HestonSimulator:
         # Generate price and volatility paths
         for step in range(self.N):
             # Generate two correlated random normals
-            # Z1: Drives price (dS)
-            # Z2: Drives volatility (dv)
+            # Z1: Drives volatility (dv)
+            # Z2: Drives price (dS)
+
             Z1 = np.random.standard_normal(num_simulations)
             Z2 = np.random.standard_normal(num_simulations)
             
@@ -217,11 +218,11 @@ class HestonSimulator:
             
             # Update variance (Euler scheme)
             # dv = κ(θ - v) dt + ξ√v √dt Z1
-            dv = (self.kappa * (self.theta - - v_t) * self.dt +
+            dv = (self.kappa * (self.theta - v_t) * self.dt +
                   self.xi * np.sqrt(np.maximum(v_t, 0)) * np.sqrt(self.dt) * Z1)
             
             v_new = v_t + dv
-            # Ensure variance stays positive (Feller condition)
+            # Truncate variance at a small positive floor.
             v_new = np.maximum(v_new, 1e-6)
             vol_paths[:, step + 1] = v_new
             
@@ -231,7 +232,7 @@ class HestonSimulator:
             drift_term = self.mu * self.dt
             diffusion_term = np.sqrt(v_new * self.dt) * Z2_corr
             
-            price_paths[:, step + 1] = S_t * np.exp(drift_term + diffusion_term)
+            price_paths[:, step + 1] = s_t * np.exp(drift_term + diffusion_term)
             
         return price_paths, vol_paths
     
